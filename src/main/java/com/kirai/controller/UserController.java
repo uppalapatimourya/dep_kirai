@@ -4,6 +4,8 @@ package com.kirai.controller;
 import com.kirai.DTO.UserCreateRequest;
 import com.kirai.model.User;
 import com.kirai.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +17,8 @@ import java.util.Optional;
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    @Autowired
+    private UserService userService;
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
@@ -27,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody UserCreateRequest request) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserCreateRequest request) {
         Optional<User> createdUser = userService.createUser(request);
 
         if (createdUser.isEmpty()) {

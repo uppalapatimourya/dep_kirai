@@ -2,12 +2,15 @@ package com.kirai.controller;
 
 import com.kirai.DTO.LoginResponse;
 import com.kirai.DTO.LoginRequest;
+import com.kirai.commonUtility.JwtService;
 import com.kirai.model.User;
-import com.kirai.service.JwtService;
 import com.kirai.repository.UserRepository;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,22 +24,20 @@ import java.time.ZoneId;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private JwtService jwtService;
+    @Autowired
+    private UserRepository userRepository;
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
-
-    public AuthController(AuthenticationManager authenticationManager,
-                          JwtService jwtService,
-                          UserRepository userRepository) {
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
-        this.userRepository = userRepository;
-    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         try {
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
             // Attempt authentication
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -44,8 +45,6 @@ public class AuthController {
 
             if (authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.User principal) {
                 // Fetch the complete user details from MongoDB
-                User user = userRepository.findByEmail(principal.getUsername())
-                        .orElseThrow(() -> new RuntimeException("User not found"));
 
                 // Generate tokens
                 String accessToken = jwtService.generateAccessToken(user.getId());
@@ -75,21 +74,27 @@ public class AuthController {
 
                 return ResponseEntity.ok(response);
             }
+        }
+        catch (BadCredentialsException e) {
+            // Handle invalid credentials
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid email or password. Please try again.");
         } catch (RuntimeException e) {
             // Handle "User not found"
-            if (e.getMessage().equals("User not found")) {
+            if ("User not found".equals(e.getMessage())) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body("User not found. Please check your email and try again.");
             }
         } catch (Exception e) {
-            // Handle general authentication errors
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid email or password. Please try again.");
+            // Handle other unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred. Please try again later.");
         }
 
-        // Default fallback
+        // Default fallback (should not be reached)
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("An unexpected error occurred. Please try again later.");
     }
+
 
 }

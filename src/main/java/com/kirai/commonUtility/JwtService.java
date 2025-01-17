@@ -1,5 +1,4 @@
-package com.kirai.service;
-
+package com.kirai.commonUtility;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
