@@ -25,22 +25,22 @@ public class JwtService {
     @Value("${jwt.refresh-token.expiration}")
     private long refreshTokenExpiration;
 
-    public String generateAccessToken(Long userId) {
+    public String generateAccessToken(String userId) {
         return generateToken(userId, "ACCESS", accessTokenExpiration);
     }
 
-    public String generateRefreshToken(Long userId) {
+    public String generateRefreshToken(String userId) {
         return generateToken(userId, "REFRESH", refreshTokenExpiration);
     }
 
-    private String generateToken(Long userId, String tokenType, long expiration) {
+    private String generateToken(String userId, String tokenType, long expiration) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("entityType", "user");
         claims.put("type", tokenType);
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(String.valueOf(userId))
+                .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
