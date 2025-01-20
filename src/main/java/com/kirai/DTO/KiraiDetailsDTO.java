@@ -1,5 +1,7 @@
 package com.kirai.DTO;
 
+import com.kirai.model.DhalariDetails;
+import com.kirai.model.RiceMill;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

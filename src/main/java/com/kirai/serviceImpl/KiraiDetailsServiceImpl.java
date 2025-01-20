@@ -1,8 +1,12 @@
 package com.kirai.serviceImpl;
 
 import com.kirai.DTO.KiraiDetailsDTO;
+import com.kirai.model.DhalariDetails;
 import com.kirai.model.Kirai;
+import com.kirai.model.RiceMill;
+import com.kirai.repository.DhalariRepository;
 import com.kirai.repository.MongoDBRepository;
+import com.kirai.repository.RiceMillRepository;
 import com.kirai.service.KiraiDetailsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +29,12 @@ public class KiraiDetailsServiceImpl implements KiraiDetailsService {
 
     @Autowired
     private MongoDBRepository mongoDBRepository;
+
+    @Autowired
+    private RiceMillRepository riceMillRepository;
+
+    @Autowired
+    private DhalariRepository dhalariRepository;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -55,7 +65,11 @@ public class KiraiDetailsServiceImpl implements KiraiDetailsService {
                     .riceMill(kiraiRequest.getRiceMill())
                     .transportOffices(kiraiRequest.getTransportOffices())
                     .build();
+            riceMillRepository.save(kirai.getRiceMill());
+            dhalariRepository.save(kirai.getDhalariDetails());
+
             Kirai savedEntity = mongoDBRepository.save(kirai);
+
             if (savedEntity != null) {
                 result = "Kirai Details Saved Successfully and Id is : " + savedEntity.getId();
             }
@@ -111,5 +125,15 @@ public class KiraiDetailsServiceImpl implements KiraiDetailsService {
                 .riceMill(kirai.getRiceMill())
                 .transportOffices(kirai.getTransportOffices())
                 .build();
+    }
+
+    public List<RiceMill> getAllRiceMills() {
+        List<RiceMill> riceMillList=  riceMillRepository.findAll();
+        log.info("List of  RiceMills : " + riceMillList);
+        return riceMillList;
+    }
+
+    public List<DhalariDetails> getAllDhalariDetails() {
+        return dhalariRepository.findAll();
     }
 }

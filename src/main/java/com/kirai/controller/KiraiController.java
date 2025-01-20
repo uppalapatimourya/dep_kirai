@@ -1,7 +1,9 @@
 package com.kirai.controller;
 
 import com.kirai.DTO.KiraiDetailsDTO;
+import com.kirai.model.DhalariDetails;
 import com.kirai.model.ResponseModel;
+import com.kirai.model.RiceMill;
 import com.kirai.service.KiraiDetailsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,4 +36,18 @@ public class KiraiController {
     public ResponseEntity<List<KiraiDetailsDTO>> filterKiraiDetails(@RequestParam String fieldName,@RequestParam String value){
         return new ResponseEntity<>(kiraiDetailsService.filterKiraiDetails(fieldName, value),HttpStatus.OK);
     }
+
+    @GetMapping("/getAllRiceMills")
+    public ResponseEntity<List<RiceMill>> getAllRiceMills() {
+        log.debug("Api Called :: getAllRiceMills");
+        List<RiceMill> riceMills = kiraiDetailsService.getAllRiceMills();
+        return ResponseEntity.ok(riceMills);
+    }
+
+    @GetMapping("/getAllDhalariDetails")
+    public ResponseEntity<List<DhalariDetails>> getAllDhalariDetails() {
+        List<DhalariDetails> dhalariDetails = kiraiDetailsService.getAllDhalariDetails();
+        return ResponseEntity.ok(dhalariDetails);
+    }
+
 }
